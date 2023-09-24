@@ -224,3 +224,20 @@ public static void main(String[] args) throws Exception {
 
 
 * `"adaptive"` Excludes progressive streams (audio and video are on separate tracks) (e.g.: "true" or "false")
+
+
+### Maven build
+
+```
+<repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+</repository>
+
+<dependency>
+            <groupId>com.github.TheGhostRoot</groupId>
+            <artifactId>JavaTube</artifactId>
+            <version>COMMIT/RESASE</version>
+</dependency>
+
+```
