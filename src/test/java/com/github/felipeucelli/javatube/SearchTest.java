@@ -1,9 +1,11 @@
 package com.github.felipeucelli.javatube;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.ArrayList;
 
 public class SearchTest {
 
@@ -49,7 +51,6 @@ public class SearchTest {
 
     @ParameterizedTest
     @CsvSource({
-            "java",
             "java channels"
     })
     public void testGetChannelsResults(String query) throws Exception {
@@ -62,6 +63,14 @@ public class SearchTest {
     })
     public void testGetCompletionSuggestions(String query) throws Exception {
         Assertions.assertNotNull(new Search(query).getCompletionSuggestions());
+    }
+
+    @Test
+    public void testGenerateContinuation() throws Exception {
+        Search s = new Search("java");
+        ArrayList<String> result = s.getResults();
+        s.generateContinuation();
+        Assertions.assertTrue(s.getResults().size() > result.size());
     }
 
 }

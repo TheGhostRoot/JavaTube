@@ -4,11 +4,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 class InnerTube{
     private static JSONObject innerTubeContext;
@@ -17,7 +19,7 @@ class InnerTube{
     private static String apiKey;
 
     /**
-     * Clients:
+     * @Clients:
      *          WEB,
      *          WEB_EMBED,
      *          WEB_MUSIC,
@@ -30,6 +32,7 @@ class InnerTube{
      *          IOS_EMBED,
      *          IOS_MUSIC,
      *          IOS_CREATOR,
+     *          ANDROID_TESTSUITE,
      *          MWEB,
      *          TV_EMBED
      * */
@@ -41,7 +44,7 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "WEB",
-                       "clientVersion": "2.20200720.00.02"
+                       "clientVersion": "2.20240430.01.00"
                      }
                    }
                  },
@@ -57,11 +60,11 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "ANDROID",
-                       "clientVersion": "17.31.35",
+                       "clientVersion": "19.08.35",
                        "androidSdkVersion": "30"
                      }
                    },
-                   "params": "CgIQBg"
+                   "params": "CgIIAdgDAQ%3D%3D"
                  },
                  "header": {
                    "User-Agent": "com.google.android.youtube/",
@@ -75,7 +78,7 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "IOS",
-                       "clientVersion": "17.33.2",
+                       "clientVersion": "19.08.35",
                        "deviceModel": "iPhone14,3"
                      }
                    }
@@ -110,7 +113,7 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "ANDROID_EMBEDDED_PLAYER",
-                       "clientVersion": "17.31.35",
+                       "clientVersion": "19.08.35",
                        "clientScreen": "EMBED",
                        "androidSdkVersion": "30"
                      }
@@ -128,7 +131,7 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "IOS_MESSAGES_EXTENSION",
-                       "clientVersion": "17.33.2",
+                       "clientVersion": "19.08.35",
                        "deviceModel": "iPhone14,3"
                      }
                    }
@@ -162,7 +165,7 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "ANDROID_MUSIC",
-                       "clientVersion": "5.16.51",
+                       "clientVersion": "6.40.52",
                        "androidSdkVersion": "30"
                      }
                    }
@@ -179,7 +182,7 @@ class InnerTube{
                    "context": {
                      "client": {
                        "clientName": "IOS_MUSIC",
-                       "clientVersion": "5.21",
+                       "clientVersion": "6.41",
                        "deviceModel": "iPhone14,3"
                      }
                    }
@@ -242,7 +245,23 @@ class InnerTube{
                  "apiKey": "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
                  "requireJsPlayer": "false"
                },
-               
+               "ANDROID_TESTSUITE": {
+                 "innerTubeContext": {
+                   "context": {
+                     "client": {
+                       "clientName": "ANDROID_TESTSUITE",
+                       "clientVersion": "1.9",
+                       "androidSdkVersion": "30"
+                     }
+                   }
+                 },
+                 "header": {
+                   "User-Agent": "com.google.android.youtube/",
+                   "X-Youtube-Client-Name": "30"
+                 },
+                 "apiKey": "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
+                 "requireJsPlayer": "false"
+               },
                "MWEB": {
                  "innerTubeContext": {
                    "context": {
@@ -287,9 +306,14 @@ class InnerTube{
     public JSONObject getInnerTubeContext() throws JSONException {
         return innerTubeContext;
     }
-    public void updateInnerTubeContext(JSONObject extraInfo){
-        for (String key : extraInfo.keySet()) {
-            innerTubeContext.put(key, extraInfo.get(key));
+    public void updateInnerTubeContext(JSONObject innerTubeContext, JSONObject extraInfo) throws JSONException {
+        for (Iterator<String> it = extraInfo.keys(); it.hasNext(); ) {
+            String key = it.next();
+            if (innerTubeContext.has(key) && innerTubeContext.get(key) instanceof JSONObject) {
+                updateInnerTubeContext(innerTubeContext.getJSONObject(key), extraInfo.getJSONObject(key));
+            } else {
+                innerTubeContext.put(key, extraInfo.get(key));
+            }
         }
     }
     public Map<String, String> getClientHeaders() throws JSONException {
@@ -311,23 +335,23 @@ class InnerTube{
                 "contentCheckOk: \"true\"," +
                 "racyCheckOk: \"true\"";
     }
-    private String urlEncode(JSONObject json){
+    private String urlEncode(JSONObject json) throws JSONException, UnsupportedEncodingException {
         StringBuilder query = new StringBuilder();
         for (Iterator<String> it = json.keys(); it.hasNext(); ) {
             String key = it.next();
             String value = json.getString(key);
-            query.append(URLEncoder.encode(key, StandardCharsets.UTF_8));
+            query.append(URLEncoder.encode(key, StandardCharsets.UTF_8.name()));
             query.append("=");
-            query.append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+            query.append(URLEncoder.encode(value, StandardCharsets.UTF_8.name()));
             query.append("&");
         }
-        if (!query.isEmpty()) {
+        if (query.length() != 0) {
             query.setLength(query.length() - 1);
         }
         return query.toString();
     }
 
-    private Map<String, String> getHeaderMap(){
+    private Map<String, String> getHeaderMap() throws JSONException {
         HashMap<String, String> headers = new HashMap<>();
         Iterator<String> keys = header.keys();
         while (keys.hasNext()) {
@@ -352,9 +376,19 @@ class InnerTube{
         return callApi(endpoint, query, getInnerTubeContext());
     }
 
-    public JSONObject search(String searchQuery) throws Exception {
+    public JSONObject browse(JSONObject data) throws Exception {
+        String endpoint = getBaseUrl() + "/browse";
+        JSONObject query = new JSONObject("{" + getBaseParam() + "}");
+        updateInnerTubeContext(getInnerTubeContext(), data);
+        return callApi(endpoint, query, getInnerTubeContext());
+    }
+
+    public JSONObject search(String searchQuery, String continuationToken) throws Exception {
         String endpoint = getBaseUrl() + "/search";
         JSONObject query = new JSONObject("{query: " + searchQuery + ", " + getBaseParam() + "}");
+        if(!Objects.equals(continuationToken, "")){
+            updateInnerTubeContext(getInnerTubeContext(), new JSONObject("{continuation:" + continuationToken + "}"));
+        }
         return callApi(endpoint, query, getInnerTubeContext());
     }
 }
